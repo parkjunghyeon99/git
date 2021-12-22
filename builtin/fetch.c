@@ -1996,6 +1996,15 @@ int cmd_fetch(int argc, const char **argv, const char *prefix)
 
 	argc = parse_options(argc, argv, prefix,
 			     builtin_fetch_options, builtin_fetch_usage, 0);
+
+	if (negotiate_only) {
+		/*
+		 * --negotiate-only should never recurse into
+		 * submodules, so there is no need to read .gitmodules.
+		 */
+		recurse_submodules = RECURSE_SUBMODULES_OFF;
+	}
+
 	if (recurse_submodules != RECURSE_SUBMODULES_OFF) {
 		int *sfjc = submodule_fetch_jobs_config == -1
 			    ? &submodule_fetch_jobs_config : NULL;
@@ -2112,6 +2121,17 @@ int cmd_fetch(int argc, const char **argv, const char *prefix)
 		/* TODO should this also die if we have a previous partial-clone? */
 		result = fetch_multiple(&list, max_children);
 	}
+
+	/*
+	 * Skip irrelevant tasks because we know objects were not
+	 * fetched.
+	 *
+	 * NEEDSWORK: as a future optimization, we can return early
+	 * whenever objects were not fetched e.g. if we already have all
+	 * of them.
+	 */
+	if (negotiate_only)
+		goto cleanup;
 
 	if (!result && (recurse_submodules != RECURSE_SUBMODULES_OFF)) {
 		struct strvec options = STRVEC_INIT;
