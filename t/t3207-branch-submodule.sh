@@ -44,7 +44,7 @@ cat >"$CLEANUP_SCRIPT_PATH" <<'EOF'
 EOF
 chmod +x "$CLEANUP_SCRIPT_PATH"
 
-cleanup_branches() {
+cleanup_branches () {
 	TRASH_DIRECTORY="\"$TRASH_DIRECTORY\"" "$CLEANUP_SCRIPT_PATH" "$@"
 } >/dev/null 2>/dev/null
 
